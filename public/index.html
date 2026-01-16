@@ -1,0 +1,63 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Мой современный Node.js сайт</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Список задач 🚀</h1>
+        
+        <div class="flex gap-2 mb-6">
+            <input type="text" id="goalInput" placeholder="Что нужно сделать?" 
+                   class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="addGoal()" 
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                +
+            </button>
+        </div>
+
+        <ul id="goalsList" class="space-y-3">
+            </ul>
+    </div>
+
+    <script>
+        async function loadGoals() {
+            const response = await fetch('/api/goals');
+            const data = await response.json();
+            const list = document.getElementById('goalsList');
+            list.innerHTML = '';
+            
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200 group";
+                li.innerHTML = `
+                    <span class="text-gray-700">${item.title}</span>
+                    <button onclick="deleteGoal('${item._id}')" 
+                            class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition">
+                        Удалить
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        async function addGoal() {
+            const input = document.getElementById('goalInput');
+            if (!input.value) return;
+            await fetch('/api/goals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: input.value, completed: false })
+            });
+            input.value = '';
+            loadGoals();
+        }
+
+        async function deleteGoal(id) {
+            await fetch(`/api/goals/${id}`, { method: 'DELETE' });
+            loadGoals();
+        }
+
+        loadGoals();
+    </script>
+</body>
