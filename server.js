@@ -4,9 +4,17 @@ const app = express();
 const port = process.env.PORT || 3000;
 const dbURI = 'mongodb+srv://a800oe161_db_user:qpQFfPpisSHphpES@cluster0.8gj1bvz.mongodb.net/?appName=Cluster0';
 
+// Замени весь низ файла, начиная с mongoose.connect
 mongoose.connect(dbURI)
-    .then(() => console.log('Ура! База данных подключена 🚀'))
-    .catch((err) => console.log('Ошибка подключения:', err));
+    .then(() => {
+        console.log('Ура! База данных подключена 🚀');
+        app.listen(port, () => {
+            console.log(`Сервер API запущен на порту ${port}`);
+        });
+    })
+    .catch(err => {
+        console.error('Ошибка подключения к БД:', err.message);
+    });
 
 app.use(express.static('public')); // Это заставит Express показывать файлы из папки public
 
