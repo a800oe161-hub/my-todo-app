@@ -1,18 +1,21 @@
+<!DOCTYPE html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мой современный Node.js сайт</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
         <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Список задач 🚀</h1>
         
         <div class="flex gap-2 mb-6">
             <input type="text" id="goalInput" placeholder="Что нужно сделать?" 
-                   class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                   class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             <button onclick="addGoal()" 
-                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg transition-colors font-bold">
                 +
             </button>
         </div>
@@ -22,73 +25,96 @@
     </div>
 
     <script>
+        // 1. Загрузка задач с сервера
         async function loadGoals() {
-            const response = await fetch('/api/goals');
-            const data = await response.json();
-            const list = document.getElementById('goalsList');
-            list.innerHTML = '';
-            
-            data.forEach(item => {
-    const li = document.createElement('li');
+            try {
+                const response = await fetch('/api/goals');
+                const data = await response.json();
+                const list = document.getElementById('goalsList');
+                list.innerHTML = '';
+                
+                data.forEach(item => {
+                    const li = document.createElement('li');
 
-    // 1. Динамические стили: если item.completed истинно, добавляем серый фон
-    li.className = `flex justify-between items-center p-4 rounded-xl border transition-all hover:shadow-sm cursor-pointer ${
-        item.completed ? 'bg-gray-100 border-gray-200 opacity-70' : 'bg-white border-gray-100 shadow-sm'
-    }`;
-    
-    // 2. Обработка клика по всей карточке (кроме кнопки удаления)
-    li.onclick = (e) => {
-        // Проверяем, что клик был НЕ по кнопке "Удалить"
-        if (!e.target.closest('button')) {
-            toggleGoal(item._id);
+                    // Динамические стили карточки
+                    li.className = `flex justify-between items-center p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer ${
+                        item.completed ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-white border-gray-100 shadow-sm'
+                    }`;
+                    
+                    // Клик по всей карточке меняет статус (выполнено/нет)
+                    li.onclick = (e) => {
+                        if (!e.target.closest('button')) {
+                            toggleGoal(item._id);
+                        }
+                    };
+
+                    // Внутренняя разметка с иконкой корзины
+                    li.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="${item.completed ? 'line-through text-gray-400 italic' : 'text-gray-700 font-medium'}">
+                                ${item.title}
+                            </span>
+                        </div>
+                        <button onclick="deleteGoal('${item._id}')" 
+                                class="text-red-400 hover:text-red-600 transition-colors p-2 rounded-full hover:bg-red-50"
+                                title="Удалить">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    `;
+
+                    list.appendChild(li);
+                });
+            } catch (err) {
+                console.error('Ошибка загрузки:', err);
+            }
         }
-    };
 
-    // 3. Формируем внутренний HTML с проверкой на зачеркивание текста
-    li.innerHTML = `
-        <div class="flex items-center gap-3">
-        <span class="${item.completed ? 'line-through text-gray-400 italic' : 'text-gray-700 font-medium'}">
-            ${item.title}
-        </span>
-    </div>
-    <button onclick="deleteGoal('${item._id}')" 
-            class="text-red-400 hover:text-red-600 transition-colors p-2 rounded-full hover:bg-red-50"
-            title="Удалить задачу">
-        <i class="fa-solid fa-trash-can"></i>
-    </button>
-`;
-
-    list.appendChild(li);
-});
-        }
-
+        // 2. Добавление новой задачи
         async function addGoal() {
             const input = document.getElementById('goalInput');
-            if (!input.value) return;
+            const title = input.value.trim();
+
+            if (!title) {
+                input.classList.add('border-red-500');
+                return;
+            }
+            input.classList.remove('border-red-500');
+
             await fetch('/api/goals', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: input.value, completed: false })
+                body: JSON.stringify({ title: title, completed: false })
             });
+            
             input.value = '';
             loadGoals();
         }
 
+        // 3. Удаление задачи
         async function deleteGoal(id) {
-            await fetch(`/api/goals/${id}`, { method: 'DELETE' });
-            loadGoals();
+            if (confirm('Удалить эту задачу?')) {
+                await fetch(`/api/goals/${id}`, { method: 'DELETE' });
+                loadGoals();
+            }
         }
 
-        loadGoals();
+        // 4. Переключение статуса (PATCH)
         async function toggleGoal(id) {
-    try {
-        const response = await fetch(`/api/goals/${id}`, { method: 'PATCH' });
-        if (response.ok) {
-            loadGoals(); // Перерисовываем список
+            try {
+                const response = await fetch(`/api/goals/${id}`, { method: 'PATCH' });
+                if (response.ok) loadGoals();
+            } catch (err) {
+                console.error('Ошибка переключения:', err);
+            }
         }
-    } catch (err) {
-        console.error('Ошибка при переключении:', err);
-    }
-}
+
+        // Поддержка клавиши Enter
+        document.getElementById('goalInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addGoal();
+        });
+
+        // Первоначальная загрузка
+        loadGoals();
     </script>
 </body>
+</html>
