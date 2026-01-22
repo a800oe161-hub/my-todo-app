@@ -28,17 +28,28 @@
             list.innerHTML = '';
             
             data.forEach(item => {
-                const li = document.createElement('li');
-                li.className = "flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200 group";
-                li.innerHTML = `
-                    <span class="text-gray-700">${item.title}</span>
-                    <button onclick="deleteGoal('${item._id}')" 
-                            class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition">
-                        Удалить
-                    </button>
-                `;
-                list.appendChild(li);
-            });
+    const li = document.createElement('li');
+    // Добавляем класс cursor-pointer и динамическое зачеркивание
+    li.className = `flex justify-between items-center p-3 rounded-lg border transition group cursor-pointer ${
+        item.completed ? 'bg-gray-200 border-gray-300' : 'bg-gray-50 border-gray-200'
+    }`;
+    
+    // При клике на всю строку (кроме кнопки) будет меняться статус
+    li.onclick = (e) => {
+        if (e.target.tagName !== 'BUTTON') toggleGoal(item._id);
+    };
+
+    li.innerHTML = `
+        <span class="${item.completed ? 'line-through text-gray-500' : 'text-gray-700'} font-medium">
+            ${item.title}
+        </span>
+        <button onclick="deleteGoal('${item._id}')" 
+                class="text-red-400 hover:text-red-600 md:opacity-0 group-hover:opacity-100 transition p-1">
+            Удалить
+        </button>
+    `;
+    list.appendChild(li);
+});
         }
 
         async function addGoal() {
@@ -59,5 +70,15 @@
         }
 
         loadGoals();
+        async function toggleGoal(id) {
+    try {
+        const response = await fetch(`/api/goals/${id}`, { method: 'PATCH' });
+        if (response.ok) {
+            loadGoals(); // Перерисовываем список
+        }
+    } catch (err) {
+        console.error('Ошибка при переключении:', err);
+    }
+}
     </script>
 </body>
