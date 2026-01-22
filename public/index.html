@@ -47,15 +47,16 @@
     // 3. Формируем внутренний HTML с проверкой на зачеркивание текста
     li.innerHTML = `
         <div class="flex items-center gap-3">
-            <span class="${item.completed ? 'line-through text-gray-400 italic' : 'text-gray-700 font-medium'}">
-                ${item.title}
-            </span>
-        </div>
-        <button onclick="deleteGoal('${item._id}')" 
-                class="text-red-300 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50">
-            Удалить
-        </button>
-    `;
+        <span class="${item.completed ? 'line-through text-gray-400 italic' : 'text-gray-700 font-medium'}">
+            ${item.title}
+        </span>
+    </div>
+    <button onclick="deleteGoal('${item._id}')" 
+            class="text-red-400 hover:text-red-600 transition-colors p-2 rounded-full hover:bg-red-50"
+            title="Удалить задачу">
+        <i class="fa-solid fa-trash-can"></i>
+    </button>
+`;
 
     list.appendChild(li);
 });
