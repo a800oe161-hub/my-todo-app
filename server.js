@@ -7,7 +7,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Используем переменную окружения для безопасности
-const dbURI = process.env.MONGODB_URI || 'mongodb+srv://a800oe161_db_user:qpQFfPpisSHphpES@cluster0.8gj1bvz.mongodb.net/todoDB?retryWrites=true&w=majority';
+const dbURI = process.env.MONGODB_URI;
 
 mongoose.connect(dbURI)
     .then(() => console.log('Ура! База данных подключена 🚀'))
