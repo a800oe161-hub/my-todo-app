@@ -20,12 +20,10 @@
             </button>
         </div>
 
-        <ul id="goalsList" class="space-y-3">
-            </ul>
+        <ul id="goalsList" class="space-y-3"></ul>
     </div>
 
     <script>
-        // 1. Загрузка задач с сервера
         async function loadGoals() {
             try {
                 const response = await fetch('/api/goals');
@@ -35,20 +33,16 @@
                 
                 data.forEach(item => {
                     const li = document.createElement('li');
-
-                    // Динамические стили карточки
                     li.className = `flex justify-between items-center p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer ${
                         item.completed ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-white border-gray-100 shadow-sm'
                     }`;
                     
-                    // Клик по всей карточке меняет статус (выполнено/нет)
                     li.onclick = (e) => {
                         if (!e.target.closest('button')) {
                             toggleGoal(item._id);
                         }
                     };
 
-                    // Внутренняя разметка с иконкой корзины
                     li.innerHTML = `
                         <div class="flex items-center gap-3">
                             <span class="${item.completed ? 'line-through text-gray-400 italic' : 'text-gray-700 font-medium'}">
@@ -56,12 +50,10 @@
                             </span>
                         </div>
                         <button onclick="deleteGoal('${item._id}')" 
-                                class="text-red-400 hover:text-red-600 transition-colors p-2 rounded-full hover:bg-red-50"
-                                title="Удалить">
+                                class="text-red-400 hover:text-red-600 transition-colors p-2 rounded-full hover:bg-red-50">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     `;
-
                     list.appendChild(li);
                 });
             } catch (err) {
@@ -69,7 +61,6 @@
             }
         }
 
-        // 2. Добавление новой задачи
         async function addGoal() {
             const input = document.getElementById('goalInput');
             const title = input.value.trim();
@@ -83,37 +74,31 @@
             await fetch('/api/goals', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: title, completed: false })
+                body: JSON.stringify({ title, completed: false })
             });
             
             input.value = '';
             loadGoals();
         }
 
-        // 3. Удаление задачи
         async function deleteGoal(id) {
-            if (confirm('Удалить эту задачу?')) {
-                await fetch(`/api/goals/${id}`, { method: 'DELETE' });
-                loadGoals();
-            }
+            await fetch(`/api/goals/${id}`, { method: 'DELETE' });
+            loadGoals();
         }
 
-        // 4. Переключение статуса (PATCH)
         async function toggleGoal(id) {
             try {
-                const response = await fetch(`/api/goals/${id}`, { method: 'PATCH' });
-                if (response.ok) loadGoals();
+                await fetch(`/api/goals/${id}`, { method: 'PATCH' });
+                loadGoals();
             } catch (err) {
                 console.error('Ошибка переключения:', err);
             }
         }
 
-        // Поддержка клавиши Enter
         document.getElementById('goalInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addGoal();
         });
 
-        // Первоначальная загрузка
         loadGoals();
     </script>
 </body>
