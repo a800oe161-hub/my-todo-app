@@ -2,6 +2,7 @@
     <meta charset="UTF-8">
     <title>Мой современный Node.js сайт</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
@@ -29,25 +30,33 @@
             
             data.forEach(item => {
     const li = document.createElement('li');
-    // Добавляем класс cursor-pointer и динамическое зачеркивание
-    li.className = `flex justify-between items-center p-3 rounded-lg border transition group cursor-pointer ${
-        item.completed ? 'bg-gray-200 border-gray-300' : 'bg-gray-50 border-gray-200'
+
+    // 1. Динамические стили: если item.completed истинно, добавляем серый фон
+    li.className = `flex justify-between items-center p-4 rounded-xl border transition-all hover:shadow-sm cursor-pointer ${
+        item.completed ? 'bg-gray-100 border-gray-200 opacity-70' : 'bg-white border-gray-100 shadow-sm'
     }`;
     
-    // При клике на всю строку (кроме кнопки) будет меняться статус
+    // 2. Обработка клика по всей карточке (кроме кнопки удаления)
     li.onclick = (e) => {
-        if (e.target.tagName !== 'BUTTON') toggleGoal(item._id);
+        // Проверяем, что клик был НЕ по кнопке "Удалить"
+        if (!e.target.closest('button')) {
+            toggleGoal(item._id);
+        }
     };
 
+    // 3. Формируем внутренний HTML с проверкой на зачеркивание текста
     li.innerHTML = `
-        <span class="${item.completed ? 'line-through text-gray-500' : 'text-gray-700'} font-medium">
-            ${item.title}
-        </span>
+        <div class="flex items-center gap-3">
+            <span class="${item.completed ? 'line-through text-gray-400 italic' : 'text-gray-700 font-medium'}">
+                ${item.title}
+            </span>
+        </div>
         <button onclick="deleteGoal('${item._id}')" 
-                class="text-red-400 hover:text-red-600 md:opacity-0 group-hover:opacity-100 transition p-1">
+                class="text-red-300 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50">
             Удалить
         </button>
     `;
+
     list.appendChild(li);
 });
         }
