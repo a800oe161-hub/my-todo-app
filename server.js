@@ -2,6 +2,30 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const app = express();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key'; // Добавь это в переменные Render позже
+
+// Модель пользователя
+const userSchema = new mongoose.Schema({
+    email: { type: String, unique: true, required: true },
+    password: { type: String, required: true }
+});
+const User = mongoose.model('User', userSchema);
+
+app.post('/api/auth/register', async (req, res) => {
+    const { email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    try {
+        const user = new User({ email, password: hashedPassword });
+        await user.save();
+        res.json({ message: 'Пользователь создан' });
+    } catch (e) {
+        res.status(400).json({ error: 'Email уже занят' });
+    }
+});
+
+
 
 app.use(express.json());
 app.use(express.static('public'));
